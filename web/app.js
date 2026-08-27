@@ -102,13 +102,18 @@ function sendCmd(action) {
     log("Not connected", "red");
     return;
   }
-  ws.send(JSON.stringify({ type: "cmd", action: action, state: action === "aimbot" ? !aimbotOn : undefined }));
+  ws.send(JSON.stringify({ type: "cmd", action: action }));
   if (action === "scan") log("SCAN command sent", "orange");
   if (action === "close") log("CLOSE command sent", "red");
 }
 
-function toggleAimbot() {
-  sendCmd("aimbot");
+function sendAimbot(state) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    log("Not connected", "red");
+    return;
+  }
+  ws.send(JSON.stringify({ type: "cmd", action: "aimbot", state: state }));
+  log(state ? "AIMBOT ON command sent" : "AIMBOT OFF command sent", state ? "green" : "red");
 }
 
 function updateStatusUI() {
@@ -118,7 +123,6 @@ function updateStatusUI() {
   onlineVal.className = "status-value " + (online ? "online" : "offline");
   aimbotVal.textContent = aimbotOn ? "ON" : "OFF";
   aimbotVal.className = "status-value " + (aimbotOn ? "on" : "off");
-  document.getElementById("btn-aimbot").textContent = aimbotOn ? "AIMBOT OFF" : "AIMBOT ON";
 }
 
 document.getElementById("key-input").addEventListener("keydown", function (e) {

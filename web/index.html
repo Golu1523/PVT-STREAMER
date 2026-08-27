@@ -34,7 +34,10 @@
     </div>
     <div class="btn-group">
       <button class="btn btn-scan" id="btn-scan" onclick="sendCmd('scan')">SCAN</button>
-      <button class="btn btn-aimbot" id="btn-aimbot" onclick="toggleAimbot()">AIMBOT ON</button>
+      <div class="btn-row">
+        <button class="btn btn-aimbot-on" id="btn-aimbot-on" onclick="sendAimbot(true)">ON</button>
+        <button class="btn btn-aimbot-off" id="btn-aimbot-off" onclick="sendAimbot(false)">OFF</button>
+      </div>
       <button class="btn btn-close" id="btn-close" onclick="sendCmd('close')">CLOSE</button>
     </div>
     <div class="log-box" id="log-box">

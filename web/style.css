@@ -227,12 +227,29 @@ input[type="text"]::placeholder {
   box-shadow: 0 0 16px rgba(255, 122, 0, 0.5);
 }
 
-.btn-aimbot {
+.btn-row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-row .btn {
+  flex: 1;
+}
+
+.btn-aimbot-on {
   background: linear-gradient(135deg, #ff2a2a, #a30000);
 }
 
-.btn-aimbot:hover {
+.btn-aimbot-on:hover {
   box-shadow: 0 0 16px rgba(255, 42, 42, 0.5);
+}
+
+.btn-aimbot-off {
+  background: linear-gradient(135deg, #7a1a1a, #3a0a0a);
+}
+
+.btn-aimbot-off:hover {
+  box-shadow: 0 0 16px rgba(255, 42, 42, 0.3);
 }
 
 .btn-close {
