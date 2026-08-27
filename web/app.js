@@ -69,6 +69,7 @@ function connectWS() {
     }
     if (msg.type === "status") {
       online = !!msg.online;
+      if (typeof msg.aimbot !== "undefined") aimbotOn = !!msg.aimbot;
       updateStatusUI();
     } else if (msg.type === "pong") {
       // keep alive
