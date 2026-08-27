@@ -1,5 +1,5 @@
 const FIREBASE_URL = "https://streamer-panel-1-default-rtdb.firebaseio.com/";
-const WS_URL = "wss://YOUR-RENDER-SERVER-URL/";
+const WS_URL = "wss://pvt-streamer.onrender.com/";
 const ADMIN_TOKEN = "STREAMER-PANEL-ADMIN-KEY";
 
 let ws = null;

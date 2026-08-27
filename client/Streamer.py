@@ -22,7 +22,7 @@ GITHUB_URL = "https://raw.githubusercontent.com/Golu1523/files/main/aob.txt"
 
 # ---------- WEBSOCKET CONTROL SERVER (Render par deploy hoga) ----------
 # Render server ka URL yahan daalo, e.g. wss://yourapp.onrender.com
-WS_URL = "wss://YOUR-RENDER-SERVER-URL/"
+WS_URL = "wss://pvt-streamer.onrender.com/"
 WS_HEARTBEAT_INTERVAL = 15
 
 # ---------- FUNCTION TO HIDE A FOLDER ----------
