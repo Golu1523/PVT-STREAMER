@@ -6,7 +6,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple
 
-PROCESS_ALL_ACCESS=0x1F0FFF; MEM_COMMIT=0x1000; MEM_PRIVATE=0x20000; MEM_IMAGE=0x1000000
+PROCESS_VM_READ=0x0010; PROCESS_VM_WRITE=0x0020; PROCESS_VM_OPERATION=0x0008; PROCESS_QUERY_INFORMATION=0x0400
+MEM_COMMIT=0x1000; MEM_PRIVATE=0x20000; MEM_IMAGE=0x1000000
 PAGE_NOACCESS=0x01; PAGE_READONLY=0x02; PAGE_READWRITE=0x04; PAGE_WRITECOPY=0x08
 PAGE_EXECUTE=0x10; PAGE_EXECUTE_READ=0x20; PAGE_EXECUTE_READWRITE=0x40
 PAGE_EXECUTE_WRITECOPY=0x80; PAGE_GUARD=0x100
@@ -66,7 +67,7 @@ class MemFurqan:
         try:
             import psutil; p=psutil.Process(pid); self.the_proc_name=p.name().replace(".exe",""); self.the_proc_id=pid
         except: self.the_proc_name=f"PID_{pid}"; self.the_proc_id=pid
-        h=_k32.OpenProcess(PROCESS_ALL_ACCESS,True,pid)
+        h=_k32.OpenProcess(PROCESS_VM_READ|PROCESS_VM_WRITE|PROCESS_VM_OPERATION|PROCESS_QUERY_INFORMATION,False,pid)
         if not h: return False
         self.p_handle=h
         w=ctypes.wintypes.BOOL(False); _k32.IsWow64Process(h,ctypes.byref(w))
