@@ -150,23 +150,10 @@ body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overf
   gap: 10px;
 }
 
-.panel-brand { text-align: left; }
-
-.panel-title-main {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #ff2b2b;
-}
-
-.panel-title-accent {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #ffffff;
-}
-
-.panel-sub {
+.panel-brand { text-align: left; font-family: 'Plus Jakarta Sans', sans-serif; }
+.panel-brand .brand-main { color: #ff2b2b; font-size: 24px; font-weight: 800; letter-spacing: 1px; margin-right: 6px; }
+.panel-brand .brand-accent { color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+.panel-brand .brand-sub {
   display: block;
   margin-top: 2px;
   font-size: 10px;
@@ -343,10 +330,10 @@ body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overf
   .panel {
     padding: 24px 18px 22px;
   }
-  .panel-title-main, .panel-title-accent {
-    font-size: 18px;
+  .panel-brand .brand-main, .panel-brand .brand-accent {
+    font-size: 19px;
   }
-  .panel-sub {
+  .panel-brand .brand-sub {
     font-size: 9px;
   }
   .status-value {
