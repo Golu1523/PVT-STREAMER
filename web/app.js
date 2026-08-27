@@ -36,6 +36,11 @@ async function login() {
     return;
   }
   hwid = pass;
+  if (document.getElementById("rememberMe").checked) {
+    localStorage.setItem("pvt_key", pass);
+  } else {
+    localStorage.removeItem("pvt_key");
+  }
   document.getElementById("loginPage").classList.remove("show");
   document.getElementById("panel-page").classList.remove("hidden");
   document.getElementById("key-display").textContent = pass;
@@ -131,3 +136,11 @@ function updateStatusUI() {
 document.getElementById("admKey").addEventListener("keydown", function (e) {
   if (e.key === "Enter") login();
 });
+
+(function () {
+  const saved = localStorage.getItem("pvt_key");
+  if (saved) {
+    document.getElementById("admKey").value = saved;
+    document.getElementById("rememberMe").checked = true;
+  }
+})();
