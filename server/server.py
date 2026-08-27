@@ -3,8 +3,9 @@ import json
 import os
 import time
 
-import websockets
+from websockets.asyncio.server import serve
 from websockets.exceptions import ConnectionClosed
+from websockets.http11 import Headers, Response
 
 ADMIN_TOKEN = "STREAMER-PANEL-ADMIN-KEY"
 
@@ -97,10 +98,25 @@ async def handler(ws):
             await broadcast_admin(hwid, {"type": "status", "hwid": hwid, "online": False, "aimbot": False})
 
 
+async def handle_http(connection, request):
+    upgrade = request.headers.get("Upgrade", "").lower()
+    if upgrade == "websocket":
+        return None
+    return Response(200, "OK", Headers({"Content-Length": "0"}), b"")
+
+
 async def main():
     port = int(os.environ.get("PORT", 8000))
-    print(f"[SERVER] WebSocket relay started on port {port}", flush=True)
-    async with websockets.serve(handler, "0.0.0.0", port, ping_interval=20, ping_timeout=120):
+    print(f"[SERVER] WebSocket relay starting on port {port}", flush=True)
+    async with serve(
+        handler,
+        "0.0.0.0",
+        port,
+        process_request=handle_http,
+        ping_interval=20,
+        ping_timeout=120,
+    ):
+        print(f"[SERVER] Ready", flush=True)
         await asyncio.Future()
 
 
