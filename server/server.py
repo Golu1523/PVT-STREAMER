@@ -90,13 +90,13 @@ async def handler(ws):
                         hwid = None
                         continue
                     admins.setdefault(hwid, []).append(ws)
-                    online = hwid in clients
-                    aimbot = clients.get(hwid, {}).get("aimbot", False) if online else False
-                    await send(ws, {"type": "status", "hwid": hwid, "online": online, "aimbot": aimbot})
+                    await send(ws, {"type": "status", "hwid": hwid, "online": hwid in clients, "aimbot": False})
+                    print(f"[ADMIN+] hwid={hwid[:12]}...  online={hwid in clients}", flush=True)
                 elif role == "client":
                     clients[hwid] = {"ws": ws, "aimbot": False}
                     last_seen[hwid] = now()
                     await broadcast_admin(hwid, {"type": "status", "hwid": hwid, "online": True, "aimbot": False})
+                    print(f"[CLIENT+] hwid={hwid[:12]}...  clients={len(clients)}", flush=True)
                 continue
 
             if role == "client":
@@ -115,13 +115,14 @@ async def handler(ws):
                     target = hwid
                     c = clients.get(target)
                     if c and ws_open(c["ws"]):
+                        print(f"[CMD] {action} -> client {target[:12]}...", flush=True)
                         await send(c["ws"], {"type": "cmd", "action": action, "state": msg.get("state")})
                     else:
+                        print(f"[CMD-FAIL] {action} -> no client {target[:12]}...  clients={list(clients.keys())[:3]}", flush=True)
                         await send(ws, {"type": "status", "hwid": target, "online": False, "aimbot": False})
                 elif mtype == "ping":
                     await send(ws, {"type": "pong"})
-    except ConnectionClosed:
-        pass
+    except ConnectionClosed: pass
     finally:
         if role == "admin" and hwid:
             arr = admins.get(hwid, [])
@@ -129,10 +130,12 @@ async def handler(ws):
                 arr.remove(ws)
             if not arr:
                 admins.pop(hwid, None)
+            print(f"[ADMIN-] hwid={hwid[:12]}...", flush=True)
         elif role == "client" and hwid:
             if clients.get(hwid, {}).get("ws") is ws:
                 clients.pop(hwid, None)
             await broadcast_admin(hwid, {"type": "status", "hwid": hwid, "online": False, "aimbot": False})
+            print(f"[CLIENT-] hwid={hwid[:12]}...  clients={len(clients)}", flush=True)
 
 
 async def handle_http(connection, request):

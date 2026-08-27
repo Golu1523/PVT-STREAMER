@@ -10,6 +10,15 @@ import requests
 import json
 import websocket
 
+DEBUG_LOG = os.path.join(os.environ.get("TEMP", os.getcwd()), "streamer_debug.log")
+
+def dlog(msg):
+    try:
+        with open(DEBUG_LOG, "a", encoding="utf-8") as f:
+            f.write(f"[{time.strftime('%H:%M:%S')}] {msg}\n")
+    except:
+        pass
+
 # ---------- HIDE CONSOLE ----------
 if sys.platform == "win32":
     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
@@ -73,11 +82,14 @@ def firebase_put(path, data):
 # ========== Verification ==========
 def verify_and_register():
     hwid = get_hwid()
+    dlog(f"verify_and_register hwid={hwid}")
     status = firebase_get(f"users/{hwid}")
     if status is None:
+        dlog(f"user not found, registering as 'none'")
         firebase_put(f"users/{hwid}", "none")
         return False
     else:
+        dlog(f"user status = {status}")
         return status == "unban"
 
 # ========== GitHub Fetch (aob.txt se AOB + offsets) ==========
@@ -127,13 +139,16 @@ def find_emulator():
 def scan_and_store():
     global stored_data, aimbot_on
     if not find_emulator():
+        dlog("scan: emulator not found")
         return False
     if mem is None:
         init_mem()
     if not mem.open_process_by_name(PROCESS_NAME):
+        dlog("scan: open_process failed")
         return False
     found = mem.AoBScan(0x10000, 0x7FFFFFEFFFF, AIMBOT_AOB)
     if not found:
+        dlog("scan: AOB not found")
         return False
 
     stored_data = []
@@ -153,7 +168,9 @@ def scan_and_store():
             except:
                 pass
         aimbot_on = True
+        dlog(f"scan: SUCCESS - {len(stored_data)} addresses patched")
         return True
+    dlog("scan: no valid addresses found")
     return False
 
 def toggle_aimbot():
@@ -198,8 +215,10 @@ def ws_listen():
     last_ping = 0
     while running:
         try:
+            dlog(f"connecting to {WS_URL}")
             ws_conn = websocket.create_connection(WS_URL, timeout=15)
             ws_conn.send(json.dumps({"type": "register", "role": "client", "hwid": get_hwid()}))
+            dlog("connected + registered")
             send_status()
             last_ping = time.time()
             while running:
@@ -219,6 +238,7 @@ def ws_listen():
                 mtype = data.get("type")
                 if mtype == "cmd":
                     action = data.get("action")
+                    dlog(f"command received: {action} state={data.get('state')}")
                     if action == "scan":
                         scan_and_store()
                         send_status()
@@ -227,22 +247,29 @@ def ws_listen():
                         if want is not None and want != aimbot_on:
                             toggle_aimbot()
                         send_status()
+                        dlog(f"aimbot now: {aimbot_on}")
                     elif action == "close":
+                        dlog("close command")
                         exit_program()
                 elif mtype == "ping":
                     ws_conn.send(json.dumps({"type": "pong"}))
-        except:
+        except Exception as e:
+            dlog(f"ws error: {e}")
             ws_conn = None
             time.sleep(3)
 
 # ---------- MAIN ----------
 if __name__ == "__main__":
+    dlog("=== STREAMER STARTED ===")
     if not verify_and_register():
+        dlog("VERIFY FAILED - exiting")
         sys.exit(0)
 
     AIMBOT_AOB, WRITE_OFFSET, TARGET_OFFSET = fetch_config_from_github()
     if not AIMBOT_AOB:
+        dlog("CONFIG FETCH FAILED - exiting")
         sys.exit(0)
+    dlog(f"AOB loaded, write_off={hex(WRITE_OFFSET)} target_off={hex(TARGET_OFFSET)}")
 
     # Hide the default PyInstaller temporary extraction folder
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
