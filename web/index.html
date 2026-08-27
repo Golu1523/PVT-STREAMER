@@ -1,50 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STREAMER PANEL</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIME XITERS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="login-page" class="page">
-  <div class="login-box">
-    <div class="logo">STREAMER PANEL</div>
-    <div class="subtitle">ENTER KEY TO CONTROL</div>
-    <input type="text" id="key-input" placeholder="Enter your key..." maxlength="100" spellcheck="false">
-    <button id="connect-btn" onclick="connect()">CONNECT</button>
-    <div id="login-error" class="error-msg"></div>
-  </div>
-</div>
-<div id="panel-page" class="page hidden">
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">STREAMER PANEL</span>
-      <span class="key-display" id="key-display"></span>
+
+    <div id="loginPage" class="show">
+        <div class="login-card" id="loginCard">
+            <div class="login-logo-wrap">
+                <img src="logo.png" alt="PRIME XITERS">
+            </div>
+            <div class="login-brand">
+                <h1><span class="brand-main">PRIME</span> <span class="brand-accent">XITERS</span></h1>
+                <span class="brand-sub">PVT STREAMER PANEL</span>
+            </div>
+            <div class="login-divider"><span>Secure Access</span></div>
+            <div class="pass-wrapper">
+                <input type="password" id="admKey" class="login-input" placeholder="Enter Access Key" autocomplete="off" onkeydown="if(event.key === 'Enter') login()">
+                <button class="pass-toggle" id="passToggleBtn" type="button" onclick="togglePass()">
+                    <i class="fa-solid fa-eye" id="passIcon"></i>
+                </button>
+            </div>
+            <div class="login-options">
+                <div class="remember-row" style="margin-left:1px;">
+                    <input type="checkbox" id="rememberMe" checked>
+                    <label for="rememberMe" style="cursor:pointer;">Remember Me</label>
+                </div>
+                <a class="forgot-link"><i class="fa-regular fa-circle-question" style="margin-right:4px;"></i>Need Help?</a>
+            </div>
+            <div id="loginErr" class="login-err">Incorrect Access Key!</div>
+            <button class="btn-unlock" id="loginBtn" onclick="login()">
+                <i class="fa-solid fa-lock" id="loginBtnIcon"></i>
+                Access System
+            </button>
+            <div class="login-footer-text">&copy; 2026 PRIME XITERS &bull; All Rights Reserved</div>
+        </div>
     </div>
-    <div class="status-row">
-      <div class="status-box" id="online-status">
-        <span class="status-label">STATUS</span>
-        <span class="status-value offline">OFFLINE</span>
+
+    <div id="panel-page" class="page hidden">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">PRIME XITERS</span>
+          <span class="key-display" id="key-display"></span>
+        </div>
+        <div class="status-row">
+          <div class="status-box" id="online-status">
+            <span class="status-label">STATUS</span>
+            <span class="status-value offline">OFFLINE</span>
+          </div>
+          <div class="status-box" id="aimbot-status">
+            <span class="status-label">AIMBOT</span>
+            <span class="status-value off">OFF</span>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-scan" id="btn-scan" onclick="sendCmd('scan')">SCAN</button>
+          <div class="btn-row">
+            <button class="btn btn-aimbot-on" id="btn-aimbot-on" onclick="sendAimbot(true)">ON</button>
+            <button class="btn btn-aimbot-off" id="btn-aimbot-off" onclick="sendAimbot(false)">OFF</button>
+          </div>
+          <button class="btn btn-close" id="btn-close" onclick="sendCmd('close')">CLOSE</button>
+        </div>
+        <div class="log-box" id="log-box">
+          <div class="log-entry">[PANEL] Waiting for connection...</div>
+        </div>
       </div>
-      <div class="status-box" id="aimbot-status">
-        <span class="status-label">AIMBOT</span>
-        <span class="status-value off">OFF</span>
-      </div>
     </div>
-    <div class="btn-group">
-      <button class="btn btn-scan" id="btn-scan" onclick="sendCmd('scan')">SCAN</button>
-      <div class="btn-row">
-        <button class="btn btn-aimbot-on" id="btn-aimbot-on" onclick="sendAimbot(true)">ON</button>
-        <button class="btn btn-aimbot-off" id="btn-aimbot-off" onclick="sendAimbot(false)">OFF</button>
-      </div>
-      <button class="btn btn-close" id="btn-close" onclick="sendCmd('close')">CLOSE</button>
-    </div>
-    <div class="log-box" id="log-box">
-      <div class="log-entry">[PANEL] Waiting for connection...</div>
-    </div>
-  </div>
-</div>
+
 <script src="app.js"></script>
 </body>
 </html>

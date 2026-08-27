@@ -17,33 +17,36 @@ function log(msg, cls) {
   box.scrollTop = box.scrollHeight;
 }
 
-async function connect() {
-  const key = document.getElementById("key-input").value.trim();
-  const err = document.getElementById("login-error");
-  err.textContent = "";
-  if (!key) {
-    err.textContent = "Please enter a key";
-    return;
-  }
-  document.getElementById("connect-btn").disabled = true;
+async function login() {
+  const pass = document.getElementById("admKey").value.trim();
+  const err = document.getElementById("loginErr");
+  const btn = document.getElementById("loginBtn");
+  if (!pass) return;
+  err.style.display = "none";
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
   try {
-    const resp = await fetch(FIREBASE_URL + "users/" + key + ".json", { cache: "no-store" });
+    const resp = await fetch(FIREBASE_URL + "users/" + pass + ".json", { cache: "no-store" });
     const data = await resp.json();
-    if (data !== "unban") {
-      err.textContent = "Invalid key";
-      document.getElementById("connect-btn").disabled = false;
-      return;
-    }
+    if (data !== "unban") throw new Error("Invalid key");
   } catch (e) {
-    err.textContent = "Verification failed. Check network.";
-    document.getElementById("connect-btn").disabled = false;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-lock"></i> Access System';
+    err.style.display = "block";
     return;
   }
-  hwid = key;
-  document.getElementById("login-page").classList.add("hidden");
+  hwid = pass;
+  document.getElementById("loginPage").classList.remove("show");
   document.getElementById("panel-page").classList.remove("hidden");
-  document.getElementById("key-display").textContent = key;
+  document.getElementById("key-display").textContent = pass;
   connectWS();
+}
+
+function togglePass() {
+  const inp = document.getElementById("admKey");
+  const icon = document.getElementById("passIcon");
+  if (inp.type === "password") { inp.type = "text"; icon.className = "fa-solid fa-eye-slash"; }
+  else { inp.type = "password"; icon.className = "fa-solid fa-eye"; }
 }
 
 function connectWS() {
@@ -125,6 +128,6 @@ function updateStatusUI() {
   aimbotVal.className = "status-value " + (aimbotOn ? "on" : "off");
 }
 
-document.getElementById("key-input").addEventListener("keydown", function (e) {
-  if (e.key === "Enter") connect();
+document.getElementById("admKey").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") login();
 });
