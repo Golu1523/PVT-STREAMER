@@ -151,7 +151,7 @@ body { background: var(--bg-dark); color: var(--text-main); height: 100vh; overf
 }
 
 .panel-brand { text-align: left; font-family: 'Plus Jakarta Sans', sans-serif; }
-.panel-brand .brand-main { color: #ff2b2b; font-size: 24px; font-weight: 800; letter-spacing: 1px; margin-right: 3px; }
+.panel-brand .brand-main { color: #ff2b2b; font-size: 24px; font-weight: 800; letter-spacing: 1px; margin-right: 1px; }
 .panel-brand .brand-accent { color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: 1px; }
 .panel-brand .brand-sub {
   display: block;
