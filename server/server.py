@@ -7,6 +7,14 @@ import time
 from websockets.asyncio.server import serve
 from websockets.exceptions import ConnectionClosed
 from websockets.http11 import Headers, Request, Response, parse_line, parse_headers
+from websockets.protocol import State
+
+
+def ws_open(conn):
+    try:
+        return conn.state is State.OPEN
+    except Exception:
+        return True
 
 # ---------- PATCH: allow HEAD requests to reach process_request ----------
 # Render's health checker sends HEAD requests. websockets' Request.parse rejects
@@ -106,7 +114,7 @@ async def handler(ws):
                     action = msg.get("action")
                     target = hwid
                     c = clients.get(target)
-                    if c and c["ws"].open:
+                    if c and ws_open(c["ws"]):
                         await send(c["ws"], {"type": "cmd", "action": action, "state": msg.get("state")})
                     else:
                         await send(ws, {"type": "status", "hwid": target, "online": False, "aimbot": False})
