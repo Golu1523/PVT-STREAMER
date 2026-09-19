@@ -79,6 +79,10 @@ function connectWS() {
       online = !!msg.online;
       if (typeof msg.aimbot !== "undefined") aimbotOn = !!msg.aimbot;
       updateStatusUI();
+    } else if (msg.type === "scan_result") {
+      if (msg.ok === true) log("SCAN RESULT: " + msg.reason, "green");
+      else if (msg.ok === false) log("SCAN FAILED: " + msg.reason, "red");
+      else log("SCAN: " + msg.reason, "orange");
     } else if (msg.type === "pong") {
       // keep alive
     } else if (msg.type === "error") {
@@ -109,6 +113,9 @@ function sendCmd(action) {
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     log("Not connected", "red");
     return;
+  }
+  if (online === false && action === "scan") {
+    log("STREAMER OFFLINE hai - pehle Streamer.exe chalao uske baad SCAN karo", "red");
   }
   ws.send(JSON.stringify({ type: "cmd", action: action }));
   if (action === "scan") log("SCAN command sent", "orange");

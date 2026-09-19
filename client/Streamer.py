@@ -140,15 +140,22 @@ def scan_and_store():
     global stored_data, aimbot_on
     if not find_emulator():
         dlog("scan: emulator not found")
+        send_scan_result(False, "Emulator (HD-Player.exe) running nahi hai")
         return False
     if mem is None:
         init_mem()
+    if mem is None:
+        dlog("scan: mem init failed")
+        send_scan_result(False, "Memory library init failed")
+        return False
     if not mem.open_process_by_name(PROCESS_NAME):
         dlog("scan: open_process failed")
+        send_scan_result(False, "Emulator process open nahi hua (admin rights check karo)")
         return False
     found = mem.AoBScan(0x10000, 0x7FFFFFEFFFF, AIMBOT_AOB)
     if not found:
         dlog("scan: AOB not found")
+        send_scan_result(False, "AOB pattern memory mein nahi mila (emulator version ya aob.txt galat)")
         return False
 
     stored_data = []
@@ -169,8 +176,10 @@ def scan_and_store():
                 pass
         aimbot_on = True
         dlog(f"scan: SUCCESS - {len(stored_data)} addresses patched")
+        send_scan_result(True, f"SUCCESS - {len(stored_data)} addresses patched, AIMBOT ON")
         return True
     dlog("scan: no valid addresses found")
+    send_scan_result(False, "AOB mila par valid addresses nahi (offsets check karo)")
     return False
 
 def toggle_aimbot():
@@ -207,6 +216,15 @@ def send_status():
         return
     try:
         ws_conn.send(json.dumps({"type": "status", "aimbot": aimbot_on}))
+    except:
+        pass
+
+def send_scan_result(ok, reason):
+    global ws_conn
+    if ws_conn is None:
+        return
+    try:
+        ws_conn.send(json.dumps({"type": "scan_result", "ok": ok, "reason": reason}))
     except:
         pass
 
