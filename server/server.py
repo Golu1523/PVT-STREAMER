@@ -119,12 +119,12 @@ async def handler(ws):
                     if c and ws_open(c["ws"]):
                         print(f"[CMD] {action} -> client {target[:12]}...", flush=True)
                         if action == "scan":
-                            await send(ws, {"type": "scan_result", "hwid": target, "ok": None, "reason": "Scan command client ko bheja gaya, result ka intezaar..."})
+                            await send(ws, {"type": "scan_result", "hwid": target, "ok": None, "reason": "Scan in progress..."})
                         await send(c["ws"], {"type": "cmd", "action": action, "state": msg.get("state")})
                     else:
                         print(f"[CMD-FAIL] {action} -> no client {target[:12]}...  clients={list(clients.keys())[:3]}", flush=True)
                         await send(ws, {"type": "status", "hwid": target, "online": False, "aimbot": False})
-                        await send(ws, {"type": "scan_result", "hwid": target, "ok": False, "reason": "Streamer client OFFLINE hai - command deliver nahi hui"})
+                        await send(ws, {"type": "scan_result", "hwid": target, "ok": False, "reason": "Client offline."})
                 elif mtype == "ping":
                     await send(ws, {"type": "pong"})
     except ConnectionClosed: pass

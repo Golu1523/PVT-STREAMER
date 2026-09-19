@@ -80,9 +80,9 @@ function connectWS() {
       if (typeof msg.aimbot !== "undefined") aimbotOn = !!msg.aimbot;
       updateStatusUI();
     } else if (msg.type === "scan_result") {
-      if (msg.ok === true) log("SCAN RESULT: " + msg.reason, "green");
-      else if (msg.ok === false) log("SCAN FAILED: " + msg.reason, "red");
-      else log("SCAN: " + msg.reason, "orange");
+      if (msg.ok === true) log("Scan completed successfully.", "green");
+      else if (msg.ok === false) log("Scan failed.", "red");
+      else log("Scan in progress...", "orange");
     } else if (msg.type === "pong") {
       // keep alive
     } else if (msg.type === "error") {
@@ -115,11 +115,11 @@ function sendCmd(action) {
     return;
   }
   if (online === false && action === "scan") {
-    log("STREAMER OFFLINE hai - pehle Streamer.exe chalao uske baad SCAN karo", "red");
+    log("Client offline. Start Streamer and try again.", "red");
   }
   ws.send(JSON.stringify({ type: "cmd", action: action }));
-  if (action === "scan") log("SCAN command sent", "orange");
-  if (action === "close") log("CLOSE command sent", "red");
+  if (action === "scan") log("Scan command sent.", "orange");
+  if (action === "close") log("Close command sent.", "red");
 }
 
 function sendAimbot(state) {
