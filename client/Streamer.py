@@ -44,7 +44,7 @@ def hide_folder(path):
 # ---------- CONFIG (sab GitHub se aayega, kuch hardcoded nahi) ----------
 PROCESS_NAME = "HD-Player.exe"
 
-mem = None
+mem = None  # (deprecated - ab DLL engine use hota hai, engine.py dekho)
 running = True
 stored_data = []
 aimbot_on = False
@@ -116,94 +116,128 @@ def fetch_config_from_github():
         pass
     return None, None, None
 
-# ========== Aimbot Logic ==========
-def init_mem():
-    global mem
+# ========== Aimbot Logic (NEW DLL ENGINE - CHECK METHOD main.py se) ==========
+ENGINE = None
+
+def init_engine():
+    """DLL engine init (PrimeXitersMemory.dll via pythonnet)"""
+    global ENGINE
+    if ENGINE is not None:
+        return ENGINE
     try:
-        from beyondmem import MemFurqan
-        mem = MemFurqan()
-    except:
-        pass
+        from engine import AobScanner
+        ENGINE = AobScanner()
+        if not ENGINE.dll_loaded:
+            dlog("engine: DLL load FAILED")
+            ENGINE = None
+    except Exception as e:
+        dlog(f"engine init error: {e}")
+        ENGINE = None
+    return ENGINE
 
 def find_emulator():
     try:
-        output = subprocess.check_output(
-            "tasklist /FI \"IMAGENAME eq HD-Player.exe\"",
-            shell=True,
-            creationflags=subprocess.CREATE_NO_WINDOW
-        ).decode()
-        return "HD-Player.exe" in output
-    except:
+        import psutil
+        for p in psutil.process_iter(['name']):
+            n = (p.info.get('name') or '').lower()
+            if 'hd-player' in n or 'aow_exe' in n or 'ldvboxheadless' in n:
+                return True
         return False
+    except Exception:
+        # fallback tasklist method
+        try:
+            output = subprocess.check_output(
+                'tasklist /FI "IMAGENAME eq HD-Player.exe"',
+                shell=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            ).decode()
+            return "HD-Player.exe" in output
+        except Exception:
+            return False
 
 def scan_and_store():
     global stored_data, aimbot_on
+    eng = init_engine()
+    if eng is None:
+        dlog("scan: engine/DLL load failed")
+        send_scan_result(False, "Memory engine (DLL) load nahi hui")
+        return False
     if not find_emulator():
         dlog("scan: emulator not found")
         send_scan_result(False, "Emulator (HD-Player.exe) running nahi hai")
         return False
-    if mem is None:
-        init_mem()
-    if mem is None:
-        dlog("scan: mem init failed")
-        send_scan_result(False, "Memory library init failed")
+    attach = eng.attach_to_emulator()
+    if not attach.get("success", False):
+        dlog(f"scan: attach failed: {attach.get('message')}")
+        send_scan_result(False, f"Emulator attach fail: {attach.get('message')}")
         return False
-    if not mem.open_process_by_name(PROCESS_NAME):
-        dlog("scan: open_process failed")
-        send_scan_result(False, "Emulator process open nahi hua (admin rights check karo)")
-        return False
-    found = mem.AoBScan(0x10000, 0x7FFFFFEFFFF, AIMBOT_AOB)
-    if not found:
-        dlog("scan: AOB not found")
-        send_scan_result(False, "AOB pattern memory mein nahi mila (emulator version ya aob.txt galat)")
-        return False
+    dlog(f"scan: attached to {attach.get('emulator', {}).get('name')} pid={attach.get('emulator', {}).get('pid')}")
+    try:
+        result = eng.scan_only(AIMBOT_AOB)
+        if not result or not result.get("success", False):
+            _m = result.get("message", "unknown") if isinstance(result, dict) else "no result"
+            dlog(f"scan: AOB not found: {_m}")
+            send_scan_result(False, f"AOB pattern nahi mila ({_m})")
+            return False
+        dlog(f"scan: pattern found at {result['count']} addresses")
 
-    stored_data = []
-    for base in found:
-        try:
-            original = mem.read_bytes(base + WRITE_OFFSET, 4)
-            target = mem.read_bytes(base + TARGET_OFFSET, 4)
-            if original is not None and target is not None:
-                stored_data.append((base, original, target))
-        except:
-            continue
-
-    if stored_data:
-        for base, orig, target in stored_data:
+        stored_data = []
+        for base in result["addresses"]:
             try:
-                mem._write_raw(base + WRITE_OFFSET, target)
-            except:
+                original = eng.read_bytes(base + WRITE_OFFSET, 4)
+                target = eng.read_bytes(base + TARGET_OFFSET, 4)
+                if original is not None and target is not None:
+                    stored_data.append((base, original, target))
+            except Exception:
+                continue
+        if not stored_data:
+            dlog("scan: data read fail")
+            send_scan_result(False, "AOB mila par data read fail (offsets check karo)")
+            return False
+
+        wrote = 0
+        for base, original, target in stored_data:
+            try:
+                if eng.write_bytes(base + WRITE_OFFSET, target):
+                    wrote += 1
+            except Exception:
                 pass
+        if wrote == 0:
+            dlog("scan: WRITE FAIL")
+            send_scan_result(False, "WRITE FAIL - koi bhi write nahi hua!")
+            return False
+
         aimbot_on = True
-        dlog(f"scan: SUCCESS - {len(stored_data)} addresses patched")
-        send_scan_result(True, f"SUCCESS - {len(stored_data)} addresses patched, AIMBOT ON")
+        dlog(f"scan: SUCCESS - {wrote} target(s) patched")
+        send_scan_result(True, f"SUCCESS - {wrote} target(s) patched, AIMBOT ON")
         return True
-    dlog("scan: no valid addresses found")
-    send_scan_result(False, "AOB mila par valid addresses nahi (offsets check karo)")
-    return False
+    finally:
+        eng.close()
 
 def toggle_aimbot():
     global aimbot_on
     if not stored_data:
         return
-    if mem is None:
-        init_mem()
-    if not mem.open_process_by_name(PROCESS_NAME):
+    eng = init_engine()
+    if eng is None:
         return
-    if aimbot_on:
+    if not find_emulator():
+        return
+    attach = eng.attach_to_emulator()
+    if not attach.get("success", False):
+        return
+    try:
+        wrote = 0
         for base, original, target in stored_data:
             try:
-                mem._write_raw(base + WRITE_OFFSET, original)
-            except:
+                if eng.write_bytes(base + WRITE_OFFSET, target if not aimbot_on else original):
+                    wrote += 1
+            except Exception:
                 pass
-        aimbot_on = False
-    else:
-        for base, original, target in stored_data:
-            try:
-                mem._write_raw(base + WRITE_OFFSET, target)
-            except:
-                pass
-        aimbot_on = True
+        if wrote > 0:
+            aimbot_on = not aimbot_on
+    finally:
+        eng.close()
 
 def exit_program():
     global running

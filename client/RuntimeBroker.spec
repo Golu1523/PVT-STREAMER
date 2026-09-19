@@ -4,9 +4,9 @@
 a = Analysis(
     ['Streamer.py'],
     pathex=[],
-    binaries=[],
+    binaries=[('PrimeXitersMemory.dll', '.')],
     datas=[],
-    hiddenimports=['beyondmem', 'websocket'],
+    hiddenimports=['engine', 'beyondmem', 'websocket', 'pythonnet', 'clr'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
