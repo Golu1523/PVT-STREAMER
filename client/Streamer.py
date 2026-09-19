@@ -104,7 +104,8 @@ def fetch_config_from_github():
         for line in resp.text.splitlines():
             line = line.strip()
             low = line.lower()
-            if low.startswith("aob"):
+            # Dono format support: "AOB: ..." aur "AIMBOT AOB: ..." (CHECK METHOD format)
+            if "aob:" in low and not low.startswith("#"):
                 aob = line.split(":", 1)[1].strip()
             elif low.startswith("write_offset"):
                 w_off = int(line.split("=", 1)[1].strip(), 16)
